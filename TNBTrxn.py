@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import datetime
 import csv
+import matplotlib.pyplot as plt
 
 
 class Transaction:
@@ -38,7 +39,7 @@ class Transaction:
 	def advanceTimeTrxn(self):
 		self.setTimeRemaining(self.getTimeRemaining() - self.datetime_second)
 		if self.getTimeRemaining() <= datetime.timedelta(seconds=0):
-			isComplete = True
+			self._complete = True
 
 	def isComplete(self):
 		return self._complete
@@ -64,6 +65,7 @@ class Transaction:
 		#if type(datetime) is not datetime or type(datetime) is not datetime.timedelta:
 		#	raise TypeError('Invalid Input Type')
 		self._time_remaining = datetime
+
 	def __str__(self):
 		out = ''
 		out += 'Transaction Information ' + '\n'
@@ -71,6 +73,7 @@ class Transaction:
 		out += 'Start Time: ' + str(self.getDateTime()) + '\n'
 		out += 'Time Remaining: ' + str(self._time_remaining) + '\n'
 		out += 'Payment Type: ' + str(self.getTyp()) + '\n'
+		out += 'Complete: ' + str(self._complete) + '\n'
 		out += 'Axels: ' + str(self.getAxels()) + '\n'
 		return out
 
@@ -214,12 +217,15 @@ class Facility:
 		#advance time for facility
 		self._current_time = self._current_time + datetime.timedelta(seconds=1)
 
-		#advance time for each transaction
+		#advance time for first transaction in lane
+		#remove transaction if complete
 		for lane in self._all_lanes:
-			for j in lane._queue:
-				j.advanceTimeTrxn()
-				if j.isComplete():
-					lane.remove(j)
+			try:
+				lane._queue[0].advanceTimeTrxn()
+				if lane._queue[0].isComplete():
+					lane._queue.remove(lane._queue[0])
+			except IndexError:
+				pass
 
 	def addTransaction(self, transaction):
 		if type(transaction) is not Transaction:
@@ -257,6 +263,9 @@ class Facility:
 	def queueByLane(self):
 		for lane in self._all_lanes:
 			self._queue_by_lane[lane.getLaneID()] = lane.getQueueLength()
+
+	def getLaneQueue(self):
+		return self._queue_by_lane
 
 	def getNewTrxID():
 		out = self._trxID_counter
@@ -306,6 +315,35 @@ class Util:
 			df_row = df.iloc[i]
 			new_transaction = Transaction(df_row[0], df_row[2], df_row[3], i)
 			Facility.addTransaction(new_transaction)
+	def plotLaneQueues(self, lane_list, lane_queue_dict, simulation_time):
+		######
+		# need to add value validation to this method
+		######
+		lanes = lane_list
+		data = lane_queue_dict
+		time = simulation_time
+
+		#get labels
+		labels = []
+		for i in lanes:
+			labels.append(int(i[0]))
+
+		values = data.values()
+
+		fig, ax = plt.subplots()
+		ax.bar(labels, values)
+		plt.title('Plaza Queue   ' + str(time))
+		plt.ylim(0,20)
+		ax.set_ylabel('Queue Length')
+		ax.set_xlabel('Lane Number')
+
+		#save fig
+		name = str(time.year) + str(time.month) + str(time.day) +\
+				'T' + str(time.hour) + str(time.minute) + str(time.second) +\
+				'.png'
+		plt.savefig(name)
+
+
 
 
 
@@ -329,6 +367,9 @@ new_lane = Lane(1,'GEN')
 new_lane_2 = Lane(2, 'GEN')
 new_lane_3 = Lane(3, 'ETC')
 
+#used to build facility and for plotting
+lane_list = [ (1, 'GEN'), (2, 'GEN'), (3, 'ETC')]
+
 
 start_time = datetime.datetime(2018,1,1,minute = 15)
 test_facility = Facility(start_time)
@@ -348,6 +389,14 @@ df_small = Util().getTransactionsToAdd(df, start_time)
 df_small.to_csv('temp.csv')
 Util().addTransactionsFromDataframe(test_facility, df_small)
 
-for i in range(10):
-	print(test_facility)
+test_facility.queueByLane()
+Util().plotLaneQueues(lane_list, test_facility.getLaneQueue(), start_time)
+
+test_facility.advanceTimeFacility()
+test_facility.queueByLane()
+print(test_facility.getLaneQueue())
+
+for i in range(15):
 	test_facility.advanceTimeFacility()
+	test_facility.queueByLane()
+	Util().plotLaneQueues(lane_list, test_facility.getLaneQueue(), test_facility._current_time)
