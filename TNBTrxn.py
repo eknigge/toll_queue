@@ -532,7 +532,6 @@ if __name__ == '__main__':
 	simulation_time = start_time
 	one_second = datetime.timedelta(seconds = 1)
 	seconds_in_day = 60 * 60 * 24
-	seconds_in_day = 60 * 3
 
 
 	#import test data
@@ -602,64 +601,3 @@ if __name__ == '__main__':
 		if 'png' in i:
 			os.remove(i)
 	print('Runtime: ' + str(datetime.datetime.now() - script_runtime_start))
-
-		
-
-
-
-	"""
-	OLD CODE
-
-	print(df.head(15))
-	item = df.iloc[1].tolist()
-	item_2 = df.iloc[2].tolist()
-	item_3 = df.iloc[3].tolist()
-	item_4 = df.iloc[5].tolist()
-
-	test_trxn = Transaction(item[0],item[2],item[3], 1)
-	test_trxn_2 = Transaction(item_2[0],item_2[2],item_2[3], 2)
-	test_trxn_3 = Transaction(item_3[0],item_3[2],item_3[3], 3)
-	test_trxn_4 = Transaction(item_4[0],item_4[2],item_4[3], 5)
-
-	new_lane = Lane(1,'GEN')
-	new_lane_2 = Lane(2, 'GEN')
-	new_lane_3 = Lane(3, 'ETC')
-
-	#used to build facility and for plotting
-	lane_list = [ (1, 'GEN'), (2, 'GEN'), (3, 'ETC')]
-
-
-	start_time = datetime.datetime(2018,1,1,minute = 15)
-	test_facility = Facility(start_time)
-
-	test_facility.addLane(new_lane)
-	test_facility.addLane(new_lane_2)
-	test_facility.addLane(new_lane_3)
-	test_facility.addTransaction(test_trxn_2)
-	test_facility.addTransaction(test_trxn_3)
-
-	#add ETC
-	test_facility.addTransaction(test_trxn_4)
-
-
-
-	df_small = Util().getTransactionsToAdd(df, start_time)
-	df_small.to_csv('temp.csv')
-	Util().addTransactionsFromDataframe(test_facility, df_small)
-
-	test_facility.queueByLane()
-	Util().plotLaneQueues(lane_list, test_facility.getLaneQueue(), start_time)
-
-	test_facility.advanceTimeFacility()
-	test_facility.queueByLane()
-	print(test_facility.getLaneQueue())
-
-	for i in range(15):
-		test_facility.advanceTimeFacility()
-		test_facility.queueByLane()
-		Util().plotLaneQueues(lane_list, test_facility.getLaneQueue(), test_facility._current_time)
-
-	seconds_gen = np.random.normal(loc = 15, scale = 3)
-	print(seconds_gen)
-	print(datetime.timedelta(seconds = seconds_gen))
-	"""
