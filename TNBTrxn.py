@@ -4,8 +4,9 @@ import datetime
 import csv
 import matplotlib.pyplot as plt
 import numpy as np
-import matplotlib.animation as animation
 import shutil
+import cv2
+from cv2 import VideoWriter, VideoWriter_fourcc
 
 
 class Transaction:
@@ -239,7 +240,7 @@ class Lane:
 
 		:returns: datetime.timedelta object with processing time in seconds 
 		"""
-		return datetime.timedelta(seconds=5)
+		return datetime.timedelta(seconds=15)
 
 	def processingTimeCreditGen(self):
 		"""
@@ -248,7 +249,7 @@ class Lane:
 
 		:returns: datetime.timedelta object with processing time in seconds 
 		"""
-		return datetime.timedelta(seconds=5)
+		return datetime.timedelta(seconds=15)
 
 	def processingTimeCreditInCreditLane(self):
 		"""
@@ -257,7 +258,7 @@ class Lane:
 
 		:returns: datetime.timedelta object with processing time in seconds 
 		"""
-		return datetime.timedelta(seconds=5)
+		return datetime.timedelta(seconds=15)
 
 	def processingTimeETCInETCLane(self):
 		"""
@@ -266,7 +267,7 @@ class Lane:
 
 		:returns: datetime.timedelta object with processing time in seconds 
 		"""
-		return datetime.timedelta(seconds=5)
+		return datetime.timedelta(seconds=15)
 
 	def processingTimeMailGen(self):
 		"""
@@ -275,7 +276,7 @@ class Lane:
 
 		:returns: datetime.timedelta object with processing time in seconds 
 		"""
-		return datetime.timedelta(seconds=5)
+		return datetime.timedelta(seconds=15)
 
 	def processingTimeETCGen(self):
 		"""
@@ -284,7 +285,7 @@ class Lane:
 
 		:returns: datetime.timedelta object with processing time in seconds 
 		"""
-		return datetime.timedelta(seconds=5)
+		return datetime.timedelta(seconds=15)
 
 	def setLaneType(self, lane_type):
 		"""
@@ -524,12 +525,14 @@ class Util:
 
 #Test simulation
 if __name__ == '__main__':
+	script_runtime_start = datetime.datetime.now()
 
 	#simulation time represents, current time while running model 
 	start_time = datetime.datetime(2018,1,1,hour = 0, minute = 0)
 	simulation_time = start_time
 	one_second = datetime.timedelta(seconds = 1)
 	seconds_in_day = 60 * 60 * 24
+	seconds_in_day = 60 * 3
 
 
 	#import test data
@@ -560,7 +563,8 @@ if __name__ == '__main__':
 
 
 	#increment time for analysis day
-	for i in range(60):
+	for i in range(seconds_in_day):
+		print(i)
 
 		#add transactions to facility 
 		df_add = Util().getTransactionsToAdd(df, simulation_time)
@@ -574,6 +578,30 @@ if __name__ == '__main__':
 		#advance facility and simulation time
 		simulation_time = simulation_time + one_second
 		test_facility.advanceTimeFacility()
+
+	#create video file
+	width = 640
+	height = 480
+	FPS = 30
+	seconds = seconds_in_day / 30
+	seconds = 60 * 3
+
+	fourcc = VideoWriter_fourcc(*'MP42')
+	video = VideoWriter('test.avi', fourcc, float(FPS), (width, height))
+
+	img_files = os.listdir()
+	for i in img_files:
+		print(i)
+		img = cv2.imread(i)
+		video.write(img)
+	video.release()
+
+	#remove img files
+	img_files = os.listdir()
+	for i in img_files:
+		if 'png' in i:
+			os.remove(i)
+	print('Runtime: ' + str(datetime.datetime.now() - script_runtime_start))
 
 		
 
