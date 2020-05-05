@@ -3,7 +3,7 @@ import datetime
 import shutil
 import pandas as pd
 import matplotlib.pyplot as plt
-#import numpy as np
+import numpy as np
 import cv2
 from cv2 import VideoWriter, VideoWriter_fourcc
 
@@ -232,7 +232,8 @@ class Lane:
 
         :returns: datetime.timedelta object with processing time in seconds
         """
-        return datetime.timedelta(seconds=15)
+		process_time = np.random.normal(loc=13.5, scale=2.5)
+		return datetime.timedelta(seconds=process_time)
 
     def processing_time_credit_gen_lane(self):
         """
@@ -241,7 +242,8 @@ class Lane:
 
         :returns: datetime.timedelta object with processing time in seconds
         """
-        return datetime.timedelta(seconds=15)
+		process_time = np.random.normal(loc=13, scale=2.5)
+		return datetime.timedelta(seconds=process_time)
 
     def processing_time_credit_credit_lane(self):
         """
@@ -250,7 +252,8 @@ class Lane:
 
         :returns: datetime.timedelta object with processing time in seconds
         """
-        return datetime.timedelta(seconds=15)
+		process_time = np.random.normal(loc=13, scale=2.5)
+		return datetime.timedelta(seconds=process_time)
 
     def processing_time_ETC_ETC_lane(self):
         """
@@ -259,7 +262,8 @@ class Lane:
 
         :returns: datetime.timedelta object with processing time in seconds
         """
-        return datetime.timedelta(seconds=15)
+		process_time = np.random.normal(loc=5, scale=1)
+		return datetime.timedelta(seconds=process_time)
 
     def processing_time_mail_gen_lane(self):
         """
@@ -268,7 +272,8 @@ class Lane:
 
         :returns: datetime.timedelta object with processing time in seconds
         """
-        return datetime.timedelta(seconds=15)
+		process_time = np.random.normal(loc=7, scale=1)
+		return datetime.timedelta(seconds=process_time)
 
     def processing_time_ETC_gen_lane(self):
         """
@@ -277,7 +282,8 @@ class Lane:
 
         :returns: datetime.timedelta object with processing time in seconds
         """
-        return datetime.timedelta(seconds=15)
+		process_time = np.random.normal(loc=6, scale=1)
+		return datetime.timedelta(seconds=process_time)
 
     def set_lane_type(self, lane_type):
         """
@@ -521,14 +527,14 @@ if __name__ == '__main__':
     SCRIPT_RUNTIME_START = datetime.datetime.now()
 
     # simulation time represents, current time while running model
-    START_TIME = datetime.datetime(2018, 1, 1, hour=0, minute=0)
+    START_TIME = datetime.datetime(2019, 5, 4, hour=0, minute=0)
     SIMULATION_TIME = START_TIME
     ONE_SECOND = datetime.timedelta(seconds=1)
     SECONDS_IN_DAY = 60 * 60 * 24
     SECONDS_IN_DAY = 60 * 3
 
     # import test data
-    SAMPLE_DATA = '01012018.csv'
+    SAMPLE_DATA = '20190504.csv'
     DF = pd.read_csv(SAMPLE_DATA)
     DF['trans date/time'] = pd.to_datetime(DF['trans date/time'])
 
