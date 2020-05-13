@@ -34,13 +34,16 @@ class Transaction:
 
     def set_processing_time_lane(self, datetime_value):
         """
-        Set value of the remaining time and processing time
-        :param datetime_value: datetime object
+        Set value of the remaining time and processing time. Process
+        time does not change.
+        :param datetime_value: datetime.timedelta object
         """
-        if datetime_value is None:
-            raise ValueError('Invalid value')
+        if not isinstance(datetime_value, datetime.timedelta):
+            raise TypeError('Invalid value')
+        elif datetime_value < datetime.timedelta():
+            raise ValueError('negative processing time, invalid input')
         self.set_time_remaining(datetime_value)
-        self._processing_time = datetime_value
+        self._processing_time = (datetime_value)
 
     def get_trx_id(self):
         """
@@ -51,16 +54,18 @@ class Transaction:
     def get_axels(self):
         """
         Returns axel count
-
         :returns: int
         """
         return self._axel
 
-    def advance_time_transaction(self):
+    def advance_time_transaction(self, time = datetime.timedelta(seconds=1)):
         """
-        Advance transaction processing time by one second
+        Advance transaction processing time input. Default increment is 1 second.
+        :param: time
         """
-        self.set_time_remaining(self.get_time_remaining() - self._datetime_second)
+        if not isinstance(time, datetime.timedelta):
+            raise TypeError('invalid input type')
+        self.set_time_remaining(self.get_time_remaining() - time)
         if self.get_time_remaining() <= datetime.timedelta(seconds=0):
             self._complete = True
 
@@ -100,15 +105,21 @@ class Transaction:
         """
         return self._time_remaining
 
+    def get_process_time(self):
+        """
+        :returns: tuple, process time for transaction
+        """
+        return self._processing_time
+
     def set_time_remaining(self, date_time_value):
         """
-        Set payment type with datetime object
+        Set remaining time
         :param date_time_value: datetime object
         """
 
         ######
         # add TypeError check for datetime or datetime.timedelta
-        ######
+            ######
         # if type(datetime) is not datetime or type(datetime) is not datetime.timedelta:
         #   raise TypeError('Invalid Input Type')
         self._time_remaining = date_time_value
@@ -135,6 +146,7 @@ class Lane:
     _queue = []
     _lane_type = None
     _lane_id = None
+    _wait_time = 0
 
     def __init__(self, laneID, lane_type):
         self._queue = []
@@ -195,7 +207,10 @@ class Lane:
     def set_lane_ID(self, laneID):
         """
         Set lane ID
+        :param laneID: int
         """
+        if not isinstance(laneID, int):
+            raise TypeError('input not int')
         self._lane_id = laneID
 
     def get_lane_ID(self):
@@ -229,51 +244,56 @@ class Lane:
         """
         Calculates processing time for cash in general purpose
         manual toll lane. Utilizes normal probaility distribution.
+        Mean 13.5, stdev 2.5. 
 
         :returns: datetime.timedelta object with processing time in seconds
         """
-		process_time = np.random.normal(loc=13.5, scale=2.5)
-		return datetime.timedelta(seconds=process_time)
+        process_time = np.random.normal(loc=13.5, scale=2.5)
+        return datetime.timedelta(seconds=process_time)
 
     def processing_time_credit_gen_lane(self):
         """
         Calculates processing time for credit in general purpose
         manual toll lane. Utilizes normal probaility distribution.
+        Mean 13.5, stdev 2.5. 
 
         :returns: datetime.timedelta object with processing time in seconds
         """
-		process_time = np.random.normal(loc=13, scale=2.5)
-		return datetime.timedelta(seconds=process_time)
+        process_time = np.random.normal(loc=13, scale=2.5)
+        return datetime.timedelta(seconds=process_time)
 
     def processing_time_credit_credit_lane(self):
         """
         Calculates processing time for credit in credit-only manual toll lane.
         Utilizes normal probaility distribution.
+        Mean 13.0, stdev 2.5. 
 
         :returns: datetime.timedelta object with processing time in seconds
         """
-		process_time = np.random.normal(loc=13, scale=2.5)
-		return datetime.timedelta(seconds=process_time)
+        process_time = np.random.normal(loc=13, scale=2.5)
+        return datetime.timedelta(seconds=process_time)
 
     def processing_time_ETC_ETC_lane(self):
         """
         Calculates processing time for ETC in manual toll lane.
         Utilizes normal probaility distribution.
+        Mean 5, stdev 1.
 
         :returns: datetime.timedelta object with processing time in seconds
         """
-		process_time = np.random.normal(loc=5, scale=1)
-		return datetime.timedelta(seconds=process_time)
+        process_time = np.random.normal(loc=5, scale=1)
+        return datetime.timedelta(seconds=process_time)
 
     def processing_time_mail_gen_lane(self):
         """
         Calculates processing time for pay-by-mail transaction in manual toll lane.
         Utilizes normal probaility distribution.
+        Mean 7.0, stdev 1.0. 
 
         :returns: datetime.timedelta object with processing time in seconds
         """
-		process_time = np.random.normal(loc=7, scale=1)
-		return datetime.timedelta(seconds=process_time)
+        process_time = np.random.normal(loc=7, scale=1)
+        return datetime.timedelta(seconds=process_time)
 
     def processing_time_ETC_gen_lane(self):
         """
@@ -282,8 +302,8 @@ class Lane:
 
         :returns: datetime.timedelta object with processing time in seconds
         """
-		process_time = np.random.normal(loc=6, scale=1)
-		return datetime.timedelta(seconds=process_time)
+        process_time = np.random.normal(loc=6, scale=1)
+        return datetime.timedelta(seconds=process_time)
 
     def set_lane_type(self, lane_type):
         """
@@ -303,7 +323,7 @@ class Lane:
         return self._lane_type
 
     def add_transaction(self, transaction):
-        if type(transaction) is not Transaction:
+        if not isinstance(transaction, Transaction):
             raise TypeError('Invalid input type')
         else:
             self.set_processing_time(transaction)
