@@ -1,3 +1,7 @@
+"""
+Toll Booth Queue Simulator
+Author: Eric Knigge
+"""
 import os
 import datetime
 import shutil
@@ -40,7 +44,7 @@ class Transaction:
         """
         if not isinstance(datetime_value, datetime.timedelta):
             raise TypeError('Invalid value')
-        elif datetime_value < datetime.timedelta():
+        if datetime_value < datetime.timedelta():
             raise ValueError('negative processing time, invalid input')
         self.set_time_remaining_trxn(datetime_value)
         self._processing_time = (datetime_value)
@@ -60,8 +64,8 @@ class Transaction:
 
     def advance_time_transaction(self, time=datetime.timedelta(seconds=1)):
         """
-        Advance transaction processing time input. 
-        :param time: datetime.timedelta value. Default is 1 second. 
+        Advance transaction processing time input.
+        :param time: datetime.timedelta value. Default is 1 second.
         """
         if not isinstance(time, datetime.timedelta):
             raise TypeError('invalid input type')
@@ -153,7 +157,7 @@ class Lane:
         self._lane_id = None
 
         self.set_lane_type(lane_type)
-        self.set_lane_ID(laneID)
+        self.set_lane_id(laneID)
 
     def get_wait_time(self):
         """
@@ -176,16 +180,16 @@ class Lane:
         :raises TypeError: Transaction Class Type Required
         """
 
-        if type(transaction) is not Transaction:
+        if not isinstance(transaction, Transaction):
             raise TypeError('Invalid Input')
 
         # credit in credit lane
-        elif transaction.get_type() == 'CC' and self.get_lane_type() == 'CC':
+        if transaction.get_type() == 'CC' and self.get_lane_type() == 'CC':
             transaction.set_processing_time_trxn(self.processing_time_credit_credit_lane())
 
         # tag only lane
         elif transaction.get_type() == 'ETC' and self.get_lane_type() == 'ETC':
-            transaction.set_processing_time_trxn(self.processing_time_ETC_ETC_lane())
+            transaction.set_processing_time_trxn(self.processing_time_etc_etc_lane())
 
         # cash in general lane
         elif transaction.get_type() == 'CASH' and self.get_lane_type() == 'GEN':
@@ -201,18 +205,18 @@ class Lane:
 
         # tag general lane
         elif transaction.get_type() == 'ETC' and self.get_lane_type() == 'GEN':
-            transaction.set_processing_time_trxn(self.processing_time_ETC_gen_lane())
+            transaction.set_processing_time_trxn(self.processing_time_etc_gen_lane())
 
-    def set_lane_ID(self, laneID):
+    def set_lane_id(self, lane_id):
         """
         Set lane ID
-        :param laneID: int
+        :param lane_id: int
         """
-        if not isinstance(laneID, int):
+        if not isinstance(lane_id, int):
             raise TypeError('input not int')
-        self._lane_id = laneID
+        self._lane_id = lane_id
 
-    def get_lane_ID(self):
+    def get_lane_id(self):
         """
         :returns: laneID
         """
@@ -221,7 +225,7 @@ class Lane:
     def __str__(self):
         out = ''
         out += 'Lane Information' + '\n'
-        out += 'Lane ID: ' + str(self.get_lane_ID()) + '\n'
+        out += 'Lane ID: ' + str(self.get_lane_id()) + '\n'
         out += 'Lane Type: ' + str(self.get_lane_type()) + '\n'
         out += 'Queue Length: ' + str(len(self.get_queue())) + '\n'
         out += '\n'
@@ -243,7 +247,7 @@ class Lane:
         """
         Calculates processing time for cash in general purpose
         manual toll lane. Utilizes normal probaility distribution.
-        Mean 13.5, stdev 2.5. 
+        Mean 13.5, stdev 2.5.
 
         :returns: datetime.timedelta object with processing time in seconds
         """
@@ -254,7 +258,7 @@ class Lane:
         """
         Calculates processing time for credit in general purpose
         manual toll lane. Utilizes normal probaility distribution.
-        Mean 13.5, stdev 2.5. 
+        Mean 13.5, stdev 2.5.
 
         :returns: datetime.timedelta object with processing time in seconds
         """
@@ -265,14 +269,14 @@ class Lane:
         """
         Calculates processing time for credit in credit-only manual toll lane.
         Utilizes normal probaility distribution.
-        Mean 13.0, stdev 2.5. 
+        Mean 13.0, stdev 2.5.
 
         :returns: datetime.timedelta object with processing time in seconds
         """
         process_time = np.random.normal(loc=13, scale=2.5)
         return datetime.timedelta(seconds=process_time)
 
-    def processing_time_ETC_ETC_lane(self):
+    def processing_time_etc_etc_lane(self):
         """
         Calculates processing time for ETC in manual toll lane.
         Utilizes normal probaility distribution.
@@ -287,14 +291,14 @@ class Lane:
         """
         Calculates processing time for pay-by-mail transaction in manual toll lane.
         Utilizes normal probaility distribution.
-        Mean 7.0, stdev 1.0. 
+        Mean 7.0, stdev 1.0.
 
         :returns: datetime.timedelta object with processing time in seconds
         """
         process_time = np.random.normal(loc=7, scale=1)
         return datetime.timedelta(seconds=process_time)
 
-    def processing_time_ETC_gen_lane(self):
+    def processing_time_etc_gen_lane(self):
         """
         Calculates processing time for ETC in general purpose manual toll lane.
         Utilizes normal probaility distribution.
@@ -313,8 +317,7 @@ class Lane:
         """
         if lane_type not in Util().get_lane_types():
             raise ValueError('Invalid Value, does not match existing lane type')
-        else:
-            self._lane_type = lane_type
+        self._lane_type = lane_type
 
     def get_lane_type(self):
         """
@@ -329,9 +332,9 @@ class Lane:
         """
         if not isinstance(transaction, Transaction):
             raise TypeError('input not Transaction')
-        else:
-            self.set_processing_time_lane_and_trxn(transaction)
-            self._queue.append(transaction)
+
+        self.set_processing_time_lane_and_trxn(transaction)
+        self._queue.append(transaction)
 
     def advance_time_lane(self, time):
         """
@@ -348,8 +351,8 @@ class Lane:
 
 class Facility:
     """
-    Facility is the highest level contrainer for storing transactions. A 
-    Facility is made up of Lanes, and Lanes contain transactions. 
+    Facility is the highest level contrainer for storing transactions. A
+    Facility is made up of Lanes, and Lanes contain transactions.
     The *start_time* provided is the start of the simulation.
     :param start_time: datetime object
     """
@@ -383,29 +386,27 @@ class Facility:
         total_wait_time = self.get_total_wait_time()
         self._queue_summary[current_time] = [queue_length, total_wait_time]
 
-    def export_queue_summary_to_CSV(self, name='queue_summary.csv'):
+    def export_queue_summary_to_csv(self, name='queue_summary.csv'):
         """
         Writes toll queue summary to CSV file
         """
         dict_index = list(self._queue_summary)
         dict_values = self._queue_summary.values()
         column_names = ['Queue_Length', 'Total_Wait_Time']
-        df = pd.DataFrame(data=dict_values, index = dict_index,\
-                columns=column_names)
-        df.to_csv(name)
+        df_out = pd.DataFrame(data=dict_values, index=dict_index,\
+                              columns=column_names)
+        df_out.to_csv(name)
 
     def add_lane(self, lane):
         """
         Add Lane to Facility
-
         :param lane: Lane object
         """
-        if type(lane) is not Lane:
+        if not isinstance(lane, Lane):
             raise TypeError('Incorrect type')
-        elif lane in self._all_lanes:
+        if lane in self._all_lanes:
             raise ValueError('Lane already exists in system')
-        else:
-            self._all_lanes.append(lane)
+        self._all_lanes.append(lane)
 
     def advance_time_facility(self, input_time=datetime.timedelta(seconds=1)):
         """
@@ -433,25 +434,25 @@ class Facility:
 
         :param transaction: Transaction object
         """
-        if type(transaction) is not Transaction:
+        if not isinstance(transaction, Transaction):
             raise TypeError('Incorrect type')
 
         # create list with matching lane type or GEN lane
         possible_lane = []
-        for i in self._all_lanes:
-            if i.get_lane_type() == transaction.get_type() or \
-                    i.get_lane_type() == 'GEN':
-                possible_lane.append(i)
+        for lane in self._all_lanes:
+            if lane.get_lane_type() == transaction.get_type() or \
+                    lane.get_lane_type() == 'GEN':
+                possible_lane.append(lane)
 
         # raise error if no matching lane
-        if len(possible_lane) == 0:
+        if not possible_lane:
             raise TypeError('No applicable lane to process trxn')
 
         # select the fastest lane
         fastest_lane = possible_lane[0]  # default to first lane in list
-        for i in possible_lane:
-            if i.get_wait_time() < fastest_lane.get_wait_time():
-                fastest_lane = i
+        for lane in possible_lane:
+            if lane.get_wait_time() < fastest_lane.get_wait_time():
+                fastest_lane = lane
 
         # add to fastest lane
         fastest_lane.add_transaction(transaction)
@@ -464,8 +465,8 @@ class Facility:
         values = self._queue_by_lane.values()
         output = 0
 
-        for i in values:
-            output += i
+        for value in values:
+            output += value
         return output
 
     def calculate_queue_by_lane(self):
@@ -473,7 +474,7 @@ class Facility:
         Calculates and updates lane queues
         """
         for lane in self._all_lanes:
-            self._queue_by_lane[lane.get_lane_ID()] = lane.get_queue_length()
+            self._queue_by_lane[lane.get_lane_id()] = lane.get_queue_length()
 
     def get_lane_queue(self):
         """
@@ -511,8 +512,8 @@ class Facility:
         out += 'Current Time: ' + str(self._current_time) + '\n'
 
         self.calculate_queue_by_lane()
-        for n, i in enumerate(self._queue_by_lane):
-            out += 'Lane ' + str(i) + ': ' + str(self._queue_by_lane[i]) + '\n'
+        for lane in self._queue_by_lane:
+            out += 'Lane ' + str(lane) + ': ' + str(self._queue_by_lane[lane]) + '\n'
         return out
 
 
@@ -538,9 +539,9 @@ class Util:
         :param datetime_value: datetime value for filtering dataframe
         :returns: dataframe of transaction to add
         """
-        df = dataframe
-        df = df[(df['trans date/time'] < datetime_value)]
-        return df
+        df_out = dataframe
+        df_out = df_out[(df_out['trans date/time'] < datetime_value)]
+        return df_out
 
     def add_transaction_from_dataframe(self, facility, dataframe):
         """
@@ -549,10 +550,10 @@ class Util:
         :param facility: Facility object to add transaction
         :param dataframe: dataframe of transactions to add
         """
-        df = dataframe
-        n = df.shape[0]
+        df_out = dataframe
+        n = df_out.shape[0]
         for i in range(n):
-            df_row = df.iloc[i]
+            df_row = df_out.iloc[i]
             new_transaction = Transaction(df_row[0], df_row[2], df_row[3], i)
             facility.add_transaction(new_transaction)
 
@@ -574,8 +575,8 @@ class Util:
 
         # get labels
         labels = []
-        for i in lanes:
-            labels.append(int(i[0]))
+        for lane in lanes:
+            labels.append(int(lane[0]))
 
         values = data.values()
 
@@ -658,7 +659,7 @@ if __name__ == '__main__':
         TEST_FACILITY.advance_time_facility()
 
     #output queue summary
-    TEST_FACILITY.export_queue_summary_to_CSV()
+    TEST_FACILITY.export_queue_summary_to_csv()
 
     # create video file
     WIDTH = 640
