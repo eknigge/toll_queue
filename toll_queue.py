@@ -392,9 +392,10 @@ class Facility:
         """
         dict_index = list(self._queue_summary)
         dict_values = self._queue_summary.values()
-        column_names = ['Queue_Length', 'Total_Wait_Time']
+        column_names = ['Queue_Length', 'Total_Wait_Time_Seconds']
         df_out = pd.DataFrame(data=dict_values, index=dict_index,\
                               columns=column_names)
+        df_out['Total_Wait_Time_Seconds'] = df_out['Total_Wait_Time_Seconds'].dt.seconds
         df_out.to_csv(name)
 
     def add_lane(self, lane):
