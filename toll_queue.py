@@ -11,14 +11,15 @@ import numpy as np
 import cv2
 from cv2 import VideoWriter, VideoWriter_fourcc
 
+
 class Transaction:
     """
     Toll transactions utilized in Lane and Facility classes.
 
-    :param dateTime_created: start time in datetime format for the transaction
-    :param pmtTyp: payment type of transaction
+    :param datetime_created: start time in datetime format for the transaction
+    :param pmt_type: payment type of transaction
     :param axel: number of vehicle axles
-    :param trxID: transaction ID
+    :param transaction_id: transaction ID
     """
     _date_time = None
     _pmt_type = None
@@ -29,12 +30,12 @@ class Transaction:
     _trx_id = None
     _datetime_second = datetime.timedelta(seconds=1)
 
-    def __init__(self, dateTime_created, pmtTyp, axel, trxID):
-        self._date_time = dateTime_created
+    def __init__(self, datetime_created, pmt_type, axel, transaction_id):
+        self._date_time = datetime_created
         self._axel = axel
         self._time_remaining = datetime.timedelta(seconds=0)
-        self.set_pmt_type(pmtTyp)
-        self._trx_id = trxID
+        self.set_pmt_type(pmt_type)
+        self._trx_id = transaction_id
 
     def set_processing_time_trxn(self, datetime_value):
         """
@@ -47,7 +48,7 @@ class Transaction:
         if datetime_value < datetime.timedelta():
             raise ValueError('negative processing time, invalid input')
         self.set_time_remaining_trxn(datetime_value)
-        self._processing_time = (datetime_value)
+        self._processing_time = datetime_value
 
     def get_trx_id(self):
         """
@@ -123,7 +124,7 @@ class Transaction:
 
         ######
         # add TypeError check for datetime or datetime.timedelta
-            ######
+        ######
         # if type(datetime) is not datetime or type(datetime) is not datetime.timedelta:
         #   raise TypeError('Invalid Input Type')
         self._time_remaining = date_time_value
@@ -144,20 +145,20 @@ class Lane:
     """
     Lane used to for queueing transactions and as a componenent of Facility class.
 
-    :param landID: unique lane ID number
+    :param lane_id: unique lane ID number
     :param lane_type: String of lane type, must be contained in Util types
     """
     _queue = []
     _lane_type = None
     _lane_id = None
 
-    def __init__(self, laneID, lane_type):
+    def __init__(self, lane_id, lane_type):
         self._queue = []
         self._lane_type = None
         self._lane_id = None
 
         self.set_lane_type(lane_type)
-        self.set_lane_id(laneID)
+        self.set_lane_id(lane_id)
 
     def get_wait_time(self):
         """
@@ -336,13 +337,13 @@ class Lane:
         self.set_processing_time_lane_and_trxn(transaction)
         self._queue.append(transaction)
 
-    def advance_time_lane(self, time):
+    def advance_time_lane(self, input_time):
         """
         Advance time for all transactions in lane
         :param input_time: datetime.timedelta value for advancing time
         """
         try:
-            self._queue[0].advance_time_transaction(time=time)
+            self._queue[0].advance_time_transaction(time=input_time)
             if self._queue[0].is_complete():
                 self._queue.remove(self._queue[0])
         except IndexError:
@@ -351,7 +352,7 @@ class Lane:
 
 class Facility:
     """
-    Facility is the highest level contrainer for storing transactions. A
+    Facility is the highest level container for storing transactions. A
     Facility is made up of Lanes, and Lanes contain transactions.
     The *start_time* provided is the start of the simulation.
     :param start_time: datetime object
@@ -393,7 +394,7 @@ class Facility:
         dict_index = list(self._queue_summary)
         dict_values = self._queue_summary.values()
         column_names = ['Queue_Length', 'Total_Wait_Time_Seconds']
-        df_out = pd.DataFrame(data=dict_values, index=dict_index,\
+        df_out = pd.DataFrame(data=dict_values, index=dict_index,
                               columns=column_names)
         df_out['Total_Wait_Time_Seconds'] = df_out['Total_Wait_Time_Seconds'].dt.seconds
         df_out.to_csv(name)
@@ -421,9 +422,9 @@ class Facility:
 
         # advance time for first transaction in lane
         for lane in self._all_lanes:
-            lane.advance_time_lane(time=input_time)
+            lane.advance_time_lane(input_time=input_time)
 
-        #update queue summary
+        # update queue summary
         self.update_queue_summary()
 
     def add_transaction(self, transaction):
@@ -615,7 +616,6 @@ if __name__ == '__main__':
     SIMULATION_TIME = START_TIME
     ONE_SECOND = datetime.timedelta(seconds=1)
     SECONDS_IN_DAY = 60 * 60 * 24
-    SECONDS_IN_DAY = 60 * 3
 
     # import test data
     SAMPLE_DATA = '20190504.csv'
@@ -626,7 +626,7 @@ if __name__ == '__main__':
     TEST_FACILITY = Facility(START_TIME)
 
     # add lanes
-    LANE_LIST = [(1, 'GEN'), (2, 'GEN'), (3, 'GEN'), \
+    LANE_LIST = [(1, 'GEN'), (2, 'GEN'), (3, 'GEN'),
                  (4, 'GEN'), (5, 'GEN'), (6, 'GEN')]
     for i in LANE_LIST:
         TEST_FACILITY.add_lane(Lane(i[0], i[1]))
@@ -659,7 +659,7 @@ if __name__ == '__main__':
         SIMULATION_TIME = SIMULATION_TIME + ONE_SECOND
         TEST_FACILITY.advance_time_facility()
 
-    #output queue summary
+    # output queue summary
     TEST_FACILITY.export_queue_summary_to_csv()
 
     # create video file
